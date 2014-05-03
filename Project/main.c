@@ -110,8 +110,8 @@ int main(void)
 				{
 					continue;
 				}
-				beep_Buzzer(5, 5, 2);
-				printf("WRITE:%d %d %d %d %d\n",dataWrite[0],dataWrite[1],dataWrite[2],dataWrite[3],dataWrite[4]);
+				beep_Buzzer(5, 5, 1);
+// 				printf("WRITE:%d %d %d %d %d\n",dataWrite[0],dataWrite[1],dataWrite[2],dataWrite[3],dataWrite[4]);
 			}
 			else if(insValue == READ_DATA)
 			{
@@ -121,8 +121,8 @@ int main(void)
 				{
 					continue;
 				}
-				printf("READ:%d %d %d %d %d\n",dataRead[0],dataRead[1],dataRead[2],dataRead[3],dataRead[4]);	
-				beep_Buzzer(5, 5, 3);
+				printf("a%db%dc%dn%d#",dataRead[0],dataRead[1],dataRead[2],dataRead[4]*256 + dataRead[3]);	
+				beep_Buzzer(5, 5, 2);
 			}
 			insValue = 0;
 			finish=1;
