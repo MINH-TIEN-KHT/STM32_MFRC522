@@ -21,16 +21,16 @@ void delay_ns(u32 ns)
 
 void chipSellect(void)
 {
-	delay_us(50);
+	delay_us(10);
 	GPIO_ResetBits(SPI1_NSS_PORT, SPI1_NSS_PIN);
-	delay_us(50);
+	delay_us(10);
 }
 
 void chipDeSellect(void)
 {
-	delay_us(50);
+	delay_us(10);
 	GPIO_SetBits(SPI1_NSS_PORT, SPI1_NSS_PIN);
-	delay_us(50);
+	delay_us(10);
 }
 
 void hardReset(void)

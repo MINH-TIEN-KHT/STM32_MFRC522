@@ -3,20 +3,33 @@
 #include "main.h"
 #include "global.h"
 #include "../Libraries/MFRC522/mfrc522.h"
-#include "../Libraries/AX12/AX12.h"
+#include "stdlib.h"
 
 /* Private function prototypes -----------------------------------------------*/
 
-extern uint8_t CT[2];
-extern uint8_t SN[4];
-extern  uint8_t dataWrite[5];
-extern  uint8_t dataRead[5];
-extern uint8_t KEY[6];
-extern uint8_t instruction;
-extern uint8_t msgReceiveComplete;
+extern uint8_t CT[];
+extern uint8_t SN[];
+extern uint8_t dataWrite[];
+extern uint8_t dataRead[];
+extern uint8_t KEY[];
 
 extern uint8_t rx_buffer[];
-extern uint8_t finish;	
+
+extern uint8_t insValue;
+extern uint8_t aaValue;
+extern uint8_t bbValue;
+extern uint8_t ccValue;
+extern uint8_t nnnValueHigh;
+extern uint8_t nnnValueLow;
+
+extern uint8_t insValueStr[];
+extern uint8_t aaValueStr[];
+extern uint8_t bbValueStr[];
+extern uint8_t ccValueStr[];
+extern uint8_t nnnValueStr[];
+
+uint8_t finish=1;	
+uint8_t msgReceiveComplete=0;
 	
 int main(void)
 {
@@ -41,11 +54,13 @@ int main(void)
 	{
 		if(msgReceiveComplete == 1)
 		{
-			ax12ReceivedMsgProcess(rx_buffer);
+			ax12ReceivedMsgProcess();	
+			
+			insValue = (uint8_t)atoi((const char*)insValueStr);		
 			msgReceiveComplete = 0;	
 			finish = 0;
 		}
-		
+			
 		while(!finish)
 		{			
 			status = PcdRequest(PICC_REQALL,SN);
@@ -53,49 +68,52 @@ int main(void)
 			{
 				continue;
 			}				
-			Led(Bit_SET); // Led ON
-// 			printf("Card Detected \n");
-			
+			Led(Bit_SET); // Led ON			
 			//  ANTICOLLISION
 			status = PcdAnticoll(SN);			
 			if(status != MI_OK)
 			{   				
 				continue;
 			}
-// 			printf("SN:%02x %02x %02x %02x\n",SN[0],SN[1],SN[2],SN[3]);	
 			Led(Bit_RESET); // Led OFF			
 			
 			//  SELECT CARD
 			status = PcdSelect(SN);
 			if(status != MI_OK)
-			{			
-// 				printf("Card Sellect error. ERROR %d\n", status);
-				
+			{							
 				continue;
-			}
-// 			printf("Card Sellect Ok. \n");
-			
+			}			
 			//  AUTHENTICATE
 			status = PcdAuthState(PICC_AUTHENT1A, 1, KEY, SN);
 			if(status != MI_OK)
 			{
-				beep_Buzzer(10, 10, 10);
+				beep_Buzzer(5, 5, 10);
 				continue;
-			}
-// 			printf("Authenticate Ok.\n");
-								
-			if(instruction == WRITE_DATA)
+			}								
+			if(insValue == WRITE_DATA)
 			{
+				aaValue = (uint8_t)atoi((const char*)aaValueStr);
+				bbValue = (uint8_t)atoi((const char*)bbValueStr);
+				ccValue = (uint8_t)atoi((const char*)ccValueStr);
+				nnnValueLow = (uint8_t)atoi((const char*)nnnValueStr);
+				nnnValueHigh = (uint8_t)(atoi((const char*)nnnValueStr)>>8);
+				
+				dataWrite[0] = aaValue;
+				dataWrite[1] = bbValue;
+				dataWrite[2] = ccValue;
+				dataWrite[3] = nnnValueLow;
+				dataWrite[4] = nnnValueHigh;
+								
 				//  WRITE DATA TO RFID TAG
 				status = PcdWrite(1, dataWrite);
 				if(status != MI_OK)
 				{
 					continue;
 				}
-				beep_Buzzer(10, 10, 2);
-// 				printf("WRITE:%02x %02x %02x %02x %02x\n",dataWrite[0],dataWrite[1],dataWrite[2],dataWrite[3],dataWrite[4]);
+				beep_Buzzer(5, 5, 2);
+				printf("WRITE:%d %d %d %d %d\n",dataWrite[0],dataWrite[1],dataWrite[2],dataWrite[3],dataWrite[4]);
 			}
-			else if(instruction == READ_DATA)
+			else if(insValue == READ_DATA)
 			{
 				//  READ DATA FROM RFID TAG
 				status = PcdRead(1, dataRead);
@@ -103,10 +121,10 @@ int main(void)
 				{
 					continue;
 				}
-				printf("READ:%02x %02x %02x %02x %02x\n",dataRead[0],dataRead[1],dataRead[2],dataRead[3],dataRead[4]);	
-				beep_Buzzer(10, 10, 3);
+				printf("READ:%d %d %d %d %d\n",dataRead[0],dataRead[1],dataRead[2],dataRead[3],dataRead[4]);	
+				beep_Buzzer(5, 5, 3);
 			}
-			instruction = 0;
+			insValue = 0;
 			finish=1;
 		}
 	}

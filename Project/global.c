@@ -1,5 +1,22 @@
 #include "global.h"
 #include <stdio.h>
+#include "string.h"
+
+uint8_t rx_buffer[50];
+uint8_t rx_index=0;
+
+uint8_t insValue=0;
+uint8_t aaValue=0;
+uint8_t bbValue=0;
+uint8_t ccValue=0;
+uint8_t nnnValueHigh=0;
+uint8_t nnnValueLow=0;
+
+uint8_t insValueStr[4];
+uint8_t aaValueStr[4];
+uint8_t bbValueStr[4];
+uint8_t ccValueStr[4];
+uint8_t nnnValueStr[4];
 
 PUTCHAR_PROTOTYPE
 {
@@ -236,6 +253,74 @@ void EXTI_Configuration(void)
 void Led(BitAction cmd)
 {
 	GPIO_WriteBit(LED_PORT, LED_PIN, 1-cmd);
+}
+
+void ax12ReceivedMsgProcess(void)
+{
+	uint8_t i=0;
+	uint8_t sign=0, signIndex=0;
+	
+	clearBuffer(insValueStr);
+	clearBuffer(aaValueStr);
+	clearBuffer(bbValueStr);
+	clearBuffer(ccValueStr);
+	clearBuffer(nnnValueStr);
+	
+	for(i=0; i<50; i++)
+	{
+		if(rx_buffer[i]== 'i'){
+			sign = INS_SIGN;
+			signIndex = i;
+		}
+		else if(rx_buffer[i]== 'a'){
+			sign = AA_SIGN;
+			signIndex = i;
+		}
+		else if(rx_buffer[i]== 'b'){
+			sign = BB_SIGN;
+			signIndex = i;
+		}
+		else if(rx_buffer[i]== 'c'){
+			sign = CC_SIGN;
+			signIndex = i;
+		}
+		else if(rx_buffer[i]== 'n'){
+			sign = NNN_SIGN;
+			signIndex = i;
+		}
+		else if(rx_buffer[i]== '#'){
+// 			i=50; // break for loop
+			break;
+		}
+		else{
+			if(sign==INS_SIGN){
+				insValueStr[i-signIndex-1] = rx_buffer[i];				
+			}
+			else if(sign==AA_SIGN){
+				aaValueStr[i-signIndex-1] = rx_buffer[i];				
+			}
+			else if(sign==BB_SIGN){
+				bbValueStr[i-signIndex-1] = rx_buffer[i];			
+			}
+			else if(sign==CC_SIGN){
+				ccValueStr[i-signIndex-1] = rx_buffer[i];			
+			}
+			else if(sign==NNN_SIGN){
+				nnnValueStr[i-signIndex-1] = rx_buffer[i];				
+			}
+		}
+	}
+	clearBuffer(rx_buffer);
+}
+
+void clearBuffer(uint8_t *buf)
+{
+	uint8_t i=0, len=0;
+	len=sizeof(buf);
+	for(i=0; i<len; i++)
+	{
+		buf[i]=0;
+	}
 }
 
 /*----------------------------------------------------------------------------

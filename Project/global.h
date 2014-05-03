@@ -36,8 +36,19 @@
 
 #define SPI1_PORT  GPIOA
 
+#define READ_DATA 0x02
+#define WRITE_DATA 0x03
+
+#define INS_SIGN 1
+#define AA_SIGN 2
+#define BB_SIGN 3
+#define CC_SIGN 4
+#define NNN_SIGN 5
+#define SHARP_SIGN 6
+
 extern uint8_t USART_RX_BUF[64];     
-extern uint8_t USART_RX_STA;         
+extern uint8_t USART_RX_STA;    
+
 void delay_us(uint32_t Nus);
 void delay_ms(uint32_t Nus);
 void NVIC_Configuration(void);
@@ -48,5 +59,7 @@ void USART_Configuration(void);
 void SPI_Configuration(void);
 void EXTI_Configuration(void);
 void Led(BitAction cmd);
+void ax12ReceivedMsgProcess(void);
+void clearBuffer(uint8_t *buf);
 
 #endif

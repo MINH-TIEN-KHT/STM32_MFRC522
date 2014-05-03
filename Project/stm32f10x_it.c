@@ -23,7 +23,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
 #include "main.h"
-#include "../Libraries/AX12/AX12.h"
 
 extern uint8_t rx_buffer[];
 extern uint8_t rx_index;
@@ -256,23 +255,23 @@ void EXTI0_IRQHandler(void)
 *******************************************************************************/
 void EXTI1_IRQHandler(void)
 {
-	if(EXTI_GetITStatus(EXTI_Line1)!= RESET)
-	{
-		GPIO_WriteBit(GPIOB, GPIO_Pin_10, (BitAction)(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_10))); 
-		if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) == RESET)
-		{
-			//led 1 on, led 2 off		
-			GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource1);
-		}
-		else if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_1) == RESET)
-		{
-			//led 2 on, led 1 off
-			
-			GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource1);
-		}
-		
-		EXTI_ClearITPendingBit(EXTI_Line1);
-	}	
+// 	if(EXTI_GetITStatus(EXTI_Line1)!= RESET)
+// 	{
+// 		GPIO_WriteBit(GPIOB, GPIO_Pin_10, (BitAction)(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_10))); 
+// 		if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) == RESET)
+// 		{
+// 			//led 1 on, led 2 off		
+// 			GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource1);
+// 		}
+// 		else if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_1) == RESET)
+// 		{
+// 			//led 2 on, led 1 off
+// 			
+// 			GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource1);
+// 		}
+// 		
+// 		EXTI_ClearITPendingBit(EXTI_Line1);
+// 	}	
 }
 
 /*******************************************************************************
@@ -669,13 +668,12 @@ void USART1_IRQHandler(void)
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
   {
 		rx_buffer[rx_index++] = USART_ReceiveData(USART1);
-// 		USART_SendData(USART1, rx_buffer[rx_index-1]);
-		if(rx_index==11) 
+		if(rx_buffer[rx_index-1]== '#') 
 		{
 			msgReceiveComplete = 1;
 			rx_index = 0;		
 		}				
-// 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
   }
 }
 
