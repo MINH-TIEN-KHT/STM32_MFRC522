@@ -27,6 +27,8 @@
 extern uint8_t rx_buffer[];
 extern uint8_t rx_index;
 extern uint8_t msgReceiveComplete;
+extern uint16_t pppValue;
+extern uint16_t pulseCount;
 /** @addtogroup STM32F10x_StdPeriph_Examples
   * @{
   */
@@ -547,6 +549,17 @@ void TIM1_CC_IRQHandler(void)
 *******************************************************************************/
 void TIM2_IRQHandler(void)
 {
+	if(TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
+	{
+		pulseCount++;
+		if(pulseCount >= pppValue) 
+		{
+			pulseCount=0;
+			TIM_Cmd(TIM2, DISABLE);
+			TIM_SetCounter(TIM2, 0);
+		}
+		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+	}
 }
 
 
@@ -672,7 +685,9 @@ void USART1_IRQHandler(void)
 		{
 			msgReceiveComplete = 1;
 			rx_index = 0;		
-		}				
+		}			
+		TIM_Cmd(TIM2, DISABLE);	
+		TIM_SetCounter(TIM2, 0);		
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
   }
 }

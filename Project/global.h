@@ -38,13 +38,15 @@
 
 #define READ_DATA 0x02
 #define WRITE_DATA 0x03
+#define OUTPUT_PULSE 0x04
 
 #define INS_SIGN 1
 #define AA_SIGN 2
 #define BB_SIGN 3
 #define CC_SIGN 4
 #define NNN_SIGN 5
-#define SHARP_SIGN 6
+#define PPP_SIGN 6
+#define SHARP_SIGN 7
 
 extern uint8_t USART_RX_BUF[64];     
 extern uint8_t USART_RX_STA;    
@@ -58,6 +60,7 @@ void beep_Buzzer(uint8_t ton, uint8_t toff, uint8_t times);
 void USART_Configuration(void);
 void SPI_Configuration(void);
 void EXTI_Configuration(void);
+void TIM_Configuration(void);
 void Led(BitAction cmd);
 void ax12ReceivedMsgProcess(void);
 void clearBuffer(uint8_t *buf);

@@ -21,12 +21,15 @@ extern uint8_t bbValue;
 extern uint8_t ccValue;
 extern uint8_t nnnValueHigh;
 extern uint8_t nnnValueLow;
+extern uint16_t pppValue;
+extern uint16_t pulseCount;
 
 extern uint8_t insValueStr[];
 extern uint8_t aaValueStr[];
 extern uint8_t bbValueStr[];
 extern uint8_t ccValueStr[];
 extern uint8_t nnnValueStr[];
+extern uint8_t pppValueStr[];
 
 uint8_t finish=1;	
 uint8_t msgReceiveComplete=0;
@@ -42,6 +45,7 @@ int main(void)
 // 	printf("USART IS OK...\n");
  	SPI_Configuration();
 	EXTI_Configuration();
+	TIM_Configuration();
 	NVIC_Configuration();
 	delay_ms(5);
 
@@ -57,8 +61,14 @@ int main(void)
 			ax12ReceivedMsgProcess();	
 			
 			insValue = (uint8_t)atoi((const char*)insValueStr);		
-			msgReceiveComplete = 0;	
-			finish = 0;
+			msgReceiveComplete = 0;				
+			if(insValue == OUTPUT_PULSE)
+			{
+				pppValue = atoi((const char*)pppValueStr);
+				TIM_Cmd(TIM2, ENABLE);
+			}
+			else
+				finish = 0;
 		}
 			
 		while(!finish)

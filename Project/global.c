@@ -11,12 +11,15 @@ uint8_t bbValue=0;
 uint8_t ccValue=0;
 uint8_t nnnValueHigh=0;
 uint8_t nnnValueLow=0;
+uint16_t pppValue=0;
+uint16_t pulseCount=0;
 
 uint8_t insValueStr[4];
 uint8_t aaValueStr[4];
 uint8_t bbValueStr[4];
 uint8_t ccValueStr[4];
 uint8_t nnnValueStr[4];
+uint8_t pppValueStr[4];
 
 PUTCHAR_PROTOTYPE
 {
@@ -55,8 +58,9 @@ void NVIC_Configuration(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
 	
+	/* EXTI */
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI_Line2;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;					 
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;					 
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		   
 	NVIC_Init(&NVIC_InitStructure);
@@ -66,7 +70,13 @@ void NVIC_Configuration(void)
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-
+	NVIC_Init(&NVIC_InitStructure);
+	
+	/* TIM2 Updated Interrupt */
+	NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 }
 
@@ -119,6 +129,7 @@ void RCC_Configuration(void)
 	}
 	
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1 | RCC_APB2Periph_SPI1 | RCC_APB2Periph_AFIO, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 }
 
 void GPIO_Configuration(void)
@@ -169,6 +180,12 @@ void GPIO_Configuration(void)
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	
+	/* PWM output Pin */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 	
 	/* Configure PA9 for USART1 Tx as alternate function push-pull */
@@ -250,6 +267,32 @@ void EXTI_Configuration(void)
   EXTI_Init(&EXTI_InitStructure);
 }
 
+void TIM_Configuration(void)
+{
+	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+	TIM_OCInitTypeDef  TIM_OCInitStructure;
+	
+	/* Time base configuration */
+	TIM_TimeBaseStructure.TIM_Period = 9999;	  //TIM2 frequency is 1KHz
+	TIM_TimeBaseStructure.TIM_Prescaler = 7199;		 //clock for TIM2 is 10KHz
+	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
+	
+	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_Pulse = 4999;						   
+	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+	TIM_OC1Init(TIM2, &TIM_OCInitStructure);
+	
+	TIM_OC1PreloadConfig(TIM2, TIM_OCPreload_Enable);
+	TIM_ARRPreloadConfig(TIM2, ENABLE);
+	
+	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
+	TIM_SetCounter(TIM2, 0);
+// 	TIM_Cmd(TIM2, ENABLE);
+}
+
 void Led(BitAction cmd)
 {
 	GPIO_WriteBit(LED_PORT, LED_PIN, 1-cmd);
@@ -265,6 +308,7 @@ void ax12ReceivedMsgProcess(void)
 	clearBuffer(bbValueStr);
 	clearBuffer(ccValueStr);
 	clearBuffer(nnnValueStr);
+	clearBuffer(pppValueStr);
 	
 	for(i=0; i<50; i++)
 	{
@@ -288,6 +332,10 @@ void ax12ReceivedMsgProcess(void)
 			sign = NNN_SIGN;
 			signIndex = i;
 		}
+		else if(rx_buffer[i]== 'p'){
+			sign = PPP_SIGN;
+			signIndex = i;
+		}
 		else if(rx_buffer[i]== '#'){
 // 			i=50; // break for loop
 			break;
@@ -307,6 +355,9 @@ void ax12ReceivedMsgProcess(void)
 			}
 			else if(sign==NNN_SIGN){
 				nnnValueStr[i-signIndex-1] = rx_buffer[i];				
+			}
+			else if(sign==PPP_SIGN){
+				pppValueStr[i-signIndex-1] = rx_buffer[i];				
 			}
 		}
 	}
