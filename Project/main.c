@@ -53,6 +53,7 @@ int main(void)
 	delay_ms(5);
 	
 	Led(Bit_RESET); // Led OFF
+	Buzzer(Bit_RESET);
 
 	while (1)
 	{
@@ -78,14 +79,15 @@ int main(void)
 			{
 				continue;
 			}				
-			Led(Bit_SET); // Led ON			
+// 			Led(Bit_SET); // Led ON		
+// 			Buzzer(Bit_RESET);			
 			//  ANTICOLLISION
 			status = PcdAnticoll(SN);			
 			if(status != MI_OK)
 			{   				
 				continue;
 			}
-			Led(Bit_RESET); // Led OFF			
+// 			Led(Bit_RESET); // Led OFF			
 			
 			//  SELECT CARD
 			status = PcdSelect(SN);
@@ -120,7 +122,7 @@ int main(void)
 				{
 					continue;
 				}
-				beep_Buzzer(5, 5, 1);
+				beep_Buzzer(5, 5, 2);
 // 				printf("WRITE:%d %d %d %d %d\n",dataWrite[0],dataWrite[1],dataWrite[2],dataWrite[3],dataWrite[4]);
 			}
 			else if(insValue == READ_DATA)
@@ -139,7 +141,6 @@ int main(void)
 		}
 	}
 }
-
 
 #ifdef  USE_FULL_ASSERT
 /**

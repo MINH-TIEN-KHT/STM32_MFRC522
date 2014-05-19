@@ -13,11 +13,11 @@
 
 #endif /* __GNUC__ */
 
-#define BUZZER_PIN      GPIO_Pin_0
+#define BUZZER_PIN      GPIO_Pin_8
 #define BUZZER_PORT     GPIOA
 
-#define LED_PIN      GPIO_Pin_1
-#define LED_PORT     GPIOA
+#define LED_PIN      GPIO_Pin_9
+#define LED_PORT     GPIOB
 
 #define MFRC522_RST_PIN      GPIO_Pin_3
 #define MFRC522_RST_PORT     GPIOA
@@ -62,6 +62,7 @@ void SPI_Configuration(void);
 void EXTI_Configuration(void);
 void TIM_Configuration(void);
 void Led(BitAction cmd);
+void Buzzer(BitAction cmd);
 void ax12ReceivedMsgProcess(void);
 void clearBuffer(uint8_t *buf);
 

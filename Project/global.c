@@ -128,7 +128,7 @@ void RCC_Configuration(void)
 	    {}
 	}
 	
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1 | RCC_APB2Periph_SPI1 | RCC_APB2Periph_AFIO, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_USART1 | RCC_APB2Periph_SPI1 | RCC_APB2Periph_AFIO, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 }
 
@@ -156,6 +156,7 @@ void GPIO_Configuration(void)
 	GPIO_Init(LED_PORT, &GPIO_InitStructure);
 	
 	Led(Bit_SET); // ON
+	Buzzer(Bit_SET);
 	
 	/* MFRC522 RESET Pin */
 	GPIO_InitStructure.GPIO_Pin = MFRC522_RST_PIN;
@@ -205,10 +206,10 @@ void beep_Buzzer(uint8_t ton, uint8_t toff, uint8_t times)
 	unsigned char i;
 	for (i=1; i<=times;i++)
 	{
-		GPIO_SetBits(BUZZER_PORT, BUZZER_PIN);
+		GPIO_ResetBits(BUZZER_PORT, BUZZER_PIN);
 		GPIO_SetBits(LED_PORT, LED_PIN);
 		delay_ms(ton);
-		GPIO_ResetBits(BUZZER_PORT, BUZZER_PIN);
+		GPIO_SetBits(BUZZER_PORT, BUZZER_PIN);
 		GPIO_ResetBits(LED_PORT, LED_PIN);
 		delay_ms(toff);
 	}
@@ -273,7 +274,7 @@ void TIM_Configuration(void)
 	TIM_OCInitTypeDef  TIM_OCInitStructure;
 	
 	/* Time base configuration */
-	TIM_TimeBaseStructure.TIM_Period = 9999;	  //TIM2 frequency is 1KHz
+	TIM_TimeBaseStructure.TIM_Period = 999;	  //TIM2 frequency is 5Hz
 	TIM_TimeBaseStructure.TIM_Prescaler = 7199;		 //clock for TIM2 is 10KHz
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
@@ -281,7 +282,7 @@ void TIM_Configuration(void)
 	
 	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
 	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-	TIM_OCInitStructure.TIM_Pulse = 4999;						   
+	TIM_OCInitStructure.TIM_Pulse = 499;						   
 	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 	TIM_OC1Init(TIM2, &TIM_OCInitStructure);
 	
@@ -295,7 +296,12 @@ void TIM_Configuration(void)
 
 void Led(BitAction cmd)
 {
-	GPIO_WriteBit(LED_PORT, LED_PIN, 1-cmd);
+	GPIO_WriteBit(LED_PORT, LED_PIN, cmd);
+}
+
+void Buzzer(BitAction cmd)
+{
+	GPIO_WriteBit(BUZZER_PORT, BUZZER_PIN, 1-cmd);
 }
 
 void ax12ReceivedMsgProcess(void)
