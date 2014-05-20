@@ -65,6 +65,8 @@ int main(void)
 			msgReceiveComplete = 0;				
 			if(insValue == OUTPUT_PULSE)
 			{
+				pulseCount=0;
+				TIM_SetCounter(TIM2, 0);
 				pppValue = atoi((const char*)pppValueStr);
 				TIM_Cmd(TIM2, ENABLE);
 			}

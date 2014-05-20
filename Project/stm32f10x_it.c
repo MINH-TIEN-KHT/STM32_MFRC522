@@ -685,9 +685,7 @@ void USART1_IRQHandler(void)
 		{
 			msgReceiveComplete = 1;
 			rx_index = 0;		
-		}			
-		TIM_Cmd(TIM2, DISABLE);	
-		TIM_SetCounter(TIM2, 0);		
+		}				
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
   }
 }
