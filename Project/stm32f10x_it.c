@@ -29,6 +29,7 @@ extern uint8_t rx_index;
 extern uint8_t msgReceiveComplete;
 extern uint16_t pppValue;
 extern uint16_t pulseCount;
+extern uint8_t time_update;
 /** @addtogroup STM32F10x_StdPeriph_Examples
   * @{
   */
@@ -243,7 +244,6 @@ void RCC_IRQHandler(void)
 *******************************************************************************/
 void EXTI0_IRQHandler(void)
 {
-
 }
 
 /*******************************************************************************
@@ -257,23 +257,6 @@ void EXTI0_IRQHandler(void)
 *******************************************************************************/
 void EXTI1_IRQHandler(void)
 {
-// 	if(EXTI_GetITStatus(EXTI_Line1)!= RESET)
-// 	{
-// 		GPIO_WriteBit(GPIOB, GPIO_Pin_10, (BitAction)(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_10))); 
-// 		if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) == RESET)
-// 		{
-// 			//led 1 on, led 2 off		
-// 			GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource1);
-// 		}
-// 		else if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_1) == RESET)
-// 		{
-// 			//led 2 on, led 1 off
-// 			
-// 			GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource1);
-// 		}
-// 		
-// 		EXTI_ClearITPendingBit(EXTI_Line1);
-// 	}	
 }
 
 /*******************************************************************************
@@ -484,6 +467,12 @@ void CAN_SCE_IRQHandler(void)
 *******************************************************************************/
 void EXTI9_5_IRQHandler(void)
 {	
+	if(EXTI_GetITStatus(EXTI_Line5) == SET)
+	{
+		time_update = SET;
+		GPIO_WriteBit(GPIOB, GPIO_Pin_9, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_9)));
+		EXTI_ClearITPendingBit(EXTI_Line5);
+	}
 }
 
 /*******************************************************************************

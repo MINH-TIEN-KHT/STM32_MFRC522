@@ -8,6 +8,22 @@ uint8_t dataWrite[5];
 uint8_t dataRead[5];
 uint8_t KEY[6]={0xff,0xff,0xff,0xff,0xff,0xff};
 
+extern uint8_t insValue;
+extern uint8_t aaValue;
+extern uint8_t bbValue;
+extern uint8_t ccValue;
+extern uint8_t nnnValueHigh;
+extern uint8_t nnnValueLow;
+extern uint16_t pppValue;
+extern uint16_t pulseCount;
+
+extern uint8_t insValueStr[];
+extern uint8_t aaValueStr[];
+extern uint8_t bbValueStr[];
+extern uint8_t ccValueStr[];
+extern uint8_t nnnValueStr[];
+extern uint8_t pppValueStr[];
+
 void delay_ns(u32 ns)
 {
   u32 i;
@@ -480,13 +496,124 @@ void PcdAntennaOn(void)
     }
 }
 
-
 /////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////
 void PcdAntennaOff(void)
 {
 	ClearBitMask(TxControlReg, 0x03);
+}
+
+uint8_t WriteRFIDProcess(void)
+{
+	uint8_t status=0;
+	uint8_t finish=0;	
+// 	while(!finish)
+// 	{			
+		status = PcdRequest(PICC_REQALL,SN);
+		if(status != MI_OK) // error
+		{
+// 			beep_Buzzer(5, 5, 20);
+// 			continue;
+		}							
+		//  ANTICOLLISION
+		status = PcdAnticoll(SN);			
+		if(status != MI_OK)
+		{   		
+// 			beep_Buzzer(5, 5, 20);			
+// 			continue;
+		}			
+		//  SELECT CARD
+		status = PcdSelect(SN);
+		if(status != MI_OK)
+		{	
+// 			beep_Buzzer(5, 5, 20);			
+// 			continue;
+		}			
+		//  AUTHENTICATE
+		status = PcdAuthState(PICC_AUTHENT1A, 1, KEY, SN);
+		if(status != MI_OK)
+		{
+// 			beep_Buzzer(5, 5, 20);
+// 			continue;
+		}								
+		aaValue = (uint8_t)atoi((const char*)aaValueStr);
+		bbValue = (uint8_t)atoi((const char*)bbValueStr);
+		ccValue = (uint8_t)atoi((const char*)ccValueStr);
+		nnnValueLow = (uint8_t)atoi((const char*)nnnValueStr);
+		nnnValueHigh = (uint8_t)(atoi((const char*)nnnValueStr)>>8);
+		
+		dataWrite[0] = aaValue;
+		dataWrite[1] = bbValue;
+		dataWrite[2] = ccValue;
+		dataWrite[3] = nnnValueLow;
+		dataWrite[4] = nnnValueHigh;
+						
+		//  WRITE DATA TO RFID TAG
+		status = PcdWrite(1, dataWrite);
+		if(status != MI_OK)
+		{
+// 			beep_Buzzer(5, 5, 20);
+// 			continue;
+		}	
+		else
+		{
+			beep_Buzzer(5, 5, 1);
+
+		}
+// 		finish=1;
+		return status;
+// 	}
+}
+
+uint8_t ReadRFIDProcess(void)
+{
+	uint8_t status=0;
+	uint8_t finish=0;	
+// 	while(!finish)
+// 	{			
+		status = PcdRequest(PICC_REQALL,SN);
+		if(status != MI_OK) // error
+		{
+// 			beep_Buzzer(5, 5, 20);
+// 			continue;
+		}							
+		//  ANTICOLLISION
+		status = PcdAnticoll(SN);			
+		if(status != MI_OK)
+		{  
+// 			beep_Buzzer(5, 5, 20);			
+// 			continue;
+		}			
+		//  SELECT CARD
+		status = PcdSelect(SN);
+		if(status != MI_OK)
+		{		
+// 			beep_Buzzer(5, 5, 20);			
+// 			continue;
+		}			
+		//  AUTHENTICATE
+		status = PcdAuthState(PICC_AUTHENT1A, 1, KEY, SN);
+		if(status != MI_OK)
+		{
+// 			beep_Buzzer(5, 5, 20);
+// 			continue;
+		}								
+		//  READ DATA FROM RFID TAG
+		status = PcdRead(1, dataRead);
+		if(status != MI_OK)
+		{
+// 			beep_Buzzer(5, 5, 20);
+// 			continue;
+		}
+		else
+		{
+			printf("a%db%dc%dn%d#",dataRead[0],dataRead[1],dataRead[2],dataRead[4]*256 + dataRead[3]);	
+			beep_Buzzer(5, 5, 2);
+		}
+// 		finish=1;		
+		return status;
+// 	}
 }
 
 /////////////////////////////////////////////////////////////////////

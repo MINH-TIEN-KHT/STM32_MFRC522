@@ -5,7 +5,7 @@
 uint8_t rx_buffer[50];
 uint8_t rx_index=0;
 
-uint8_t insValue=0;
+uint8_t insValue=READ_DATA;
 uint8_t aaValue=0;
 uint8_t bbValue=0;
 uint8_t ccValue=0;
@@ -59,7 +59,7 @@ void NVIC_Configuration(void)
 	NVIC_InitTypeDef NVIC_InitStructure;
 	
 	/* EXTI */
-	NVIC_InitStructure.NVIC_IRQChannel = EXTI_Line2;
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;					 
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		   
@@ -129,13 +129,14 @@ void RCC_Configuration(void)
 	}
 	
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_USART1 | RCC_APB2Periph_SPI1 | RCC_APB2Periph_AFIO, ENABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2 | RCC_APB1Periph_I2C1, ENABLE);
 }
 
 void GPIO_Configuration(void)
 {  
 	GPIO_InitTypeDef GPIO_InitStructure;
 	
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_NoJTRST, ENABLE);
 	/*------------------------------------------
 	PA.3 (RST)    -->   MFRC522's RST Pin
 	PA.4 (NSS)    -->   MFRC522's SDA Pin
@@ -156,7 +157,7 @@ void GPIO_Configuration(void)
 	GPIO_Init(LED_PORT, &GPIO_InitStructure);
 	
 	Led(Bit_SET); // ON
-	Buzzer(Bit_SET);
+	Buzzer(Bit_RESET);
 	
 	/* MFRC522 RESET Pin */
 	GPIO_InitStructure.GPIO_Pin = MFRC522_RST_PIN;
@@ -177,11 +178,11 @@ void GPIO_Configuration(void)
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(SPI1_PORT, &GPIO_InitStructure);	
 	
-	/* MFRC522 Interrupt Pin */
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+	/* DS1307 Interrupt Pin */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
 	/* PWM output Pin */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
@@ -199,6 +200,21 @@ void GPIO_Configuration(void)
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	
+	/* Description: 
+	PB6 --> SCL1
+	PB7 --> SDA1
+	*/
+	/* Configure I2C1 pins: SCL and SDA */
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_6 | GPIO_Pin_7;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_OD;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0; //input 
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;	
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
 
 void beep_Buzzer(uint8_t ton, uint8_t toff, uint8_t times)
@@ -256,14 +272,32 @@ void SPI_Configuration(void)
 	SPI_Cmd(SPI1, ENABLE);
 }
 
+void I2C_Configuration(void)
+{
+	I2C_InitTypeDef I2C_InitStructure;
+	
+// 	I2C_DeInit(I2C1);
+	/* I2C1 Init */
+	I2C_InitStructure.I2C_Mode = I2C_Mode_I2C; 
+	I2C_InitStructure.I2C_DutyCycle = I2C_DutyCycle_2 ;
+	I2C_InitStructure.I2C_OwnAddress1 = 0x00;
+	I2C_InitStructure.I2C_Ack = I2C_Ack_Enable;
+	I2C_InitStructure.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
+	I2C_InitStructure.I2C_ClockSpeed = 100000; //100KHz
+	I2C_Init(I2C1, &I2C_InitStructure);
+
+	/* I2C1 Init */
+	I2C_Cmd(I2C1, ENABLE);		
+}
+
 void EXTI_Configuration(void)
 {
 	EXTI_InitTypeDef EXTI_InitStructure;
 	
-	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource2);
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource5);
 	EXTI_InitStructure.EXTI_Mode		=	EXTI_Mode_Interrupt;
   EXTI_InitStructure.EXTI_Trigger	=	EXTI_Trigger_Falling;
-  EXTI_InitStructure.EXTI_Line		=	EXTI_Line2;
+  EXTI_InitStructure.EXTI_Line		=	EXTI_Line5;
   EXTI_InitStructure.EXTI_LineCmd	=	ENABLE;
   EXTI_Init(&EXTI_InitStructure);
 }
@@ -377,6 +411,15 @@ void clearBuffer(uint8_t *buf)
 	for(i=0; i<len; i++)
 	{
 		buf[i]=0;
+	}
+}
+
+
+ErrorStatus DataProcess(uint8_t *p)
+{
+	if(p[0]>=0 && p[0]<=99 && (p[1] == 1))
+	{
+		
 	}
 }
 

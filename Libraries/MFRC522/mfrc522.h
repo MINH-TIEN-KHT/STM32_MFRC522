@@ -162,5 +162,7 @@ void PutNum(uint16_t x,uint16_t y, uint32_t n1,uint8_t n0, uint16_t charColor, u
 void Store(uint8_t *p,uint8_t store,uint8_t cash);
 u8 ReadData(uint8_t   addr,uint8_t *pKey,uint8_t *pSnr,uint8_t *dataout);
 u8 WriteData(uint8_t   addr,uint8_t *pKey,uint8_t *pSnr,uint8_t *datain);
+uint8_t WriteRFIDProcess(void);
+uint8_t ReadRFIDProcess(void);
 
 #endif

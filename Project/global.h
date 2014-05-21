@@ -59,11 +59,13 @@ void GPIO_Configuration(void);
 void beep_Buzzer(uint8_t ton, uint8_t toff, uint8_t times);
 void USART_Configuration(void);
 void SPI_Configuration(void);
+void I2C_Configuration(void);
 void EXTI_Configuration(void);
 void TIM_Configuration(void);
 void Led(BitAction cmd);
 void Buzzer(BitAction cmd);
 void ax12ReceivedMsgProcess(void);
 void clearBuffer(uint8_t *buf);
+ErrorStatus DataProcess(uint8_t *p);
 
 #endif
