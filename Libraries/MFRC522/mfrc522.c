@@ -1,6 +1,7 @@
 #include <string.h>
 #include "global.h"
 #include "mfrc522.h"
+#include <stdlib.h>
 
 uint8_t CT[2];
 uint8_t SN[4];
@@ -504,10 +505,9 @@ void PcdAntennaOff(void)
 	ClearBitMask(TxControlReg, 0x03);
 }
 
-uint8_t WriteRFIDProcess(void)
+uint8_t WriteRFIDProcess(uint8_t *pData)
 {
 	uint8_t status=0;
-	uint8_t finish=0;	
 // 	while(!finish)
 // 	{			
 		status = PcdRequest(PICC_REQALL,SN);
@@ -537,20 +537,9 @@ uint8_t WriteRFIDProcess(void)
 // 			beep_Buzzer(5, 5, 20);
 // 			continue;
 		}								
-		aaValue = (uint8_t)atoi((const char*)aaValueStr);
-		bbValue = (uint8_t)atoi((const char*)bbValueStr);
-		ccValue = (uint8_t)atoi((const char*)ccValueStr);
-		nnnValueLow = (uint8_t)atoi((const char*)nnnValueStr);
-		nnnValueHigh = (uint8_t)(atoi((const char*)nnnValueStr)>>8);
-		
-		dataWrite[0] = aaValue;
-		dataWrite[1] = bbValue;
-		dataWrite[2] = ccValue;
-		dataWrite[3] = nnnValueLow;
-		dataWrite[4] = nnnValueHigh;
 						
 		//  WRITE DATA TO RFID TAG
-		status = PcdWrite(1, dataWrite);
+		status = PcdWrite(1, pData);
 		if(status != MI_OK)
 		{
 // 			beep_Buzzer(5, 5, 20);
@@ -568,8 +557,7 @@ uint8_t WriteRFIDProcess(void)
 
 uint8_t ReadRFIDProcess(void)
 {
-	uint8_t status=0;
-	uint8_t finish=0;	
+	uint8_t status=0;	
 // 	while(!finish)
 // 	{			
 		status = PcdRequest(PICC_REQALL,SN);
@@ -609,7 +597,7 @@ uint8_t ReadRFIDProcess(void)
 		else
 		{
 			printf("a%db%dc%dn%d#",dataRead[0],dataRead[1],dataRead[2],dataRead[4]*256 + dataRead[3]);	
-			beep_Buzzer(5, 5, 2);
+			DataProcess(dataRead);
 		}
 // 		finish=1;		
 		return status;

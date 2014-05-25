@@ -1,6 +1,9 @@
 #include "global.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include "string.h"
+#include "ds1307.h"
+#include "../Libraries/MFRC522/mfrc522.h"
 
 uint8_t rx_buffer[50];
 uint8_t rx_index=0;
@@ -14,12 +17,34 @@ uint8_t nnnValueLow=0;
 uint16_t pppValue=0;
 uint16_t pulseCount=0;
 
+uint8_t secValue=0;
+uint8_t minValue=0;
+uint8_t hourValue=0;
+uint8_t dayValue=0;
+uint8_t dateValue=0;
+uint8_t monthValue=0;
+uint8_t yearValue=0;
+
 uint8_t insValueStr[4];
 uint8_t aaValueStr[4];
 uint8_t bbValueStr[4];
 uint8_t ccValueStr[4];
 uint8_t nnnValueStr[4];
 uint8_t pppValueStr[4];
+uint8_t secValueStr[4];
+uint8_t minValueStr[4];
+uint8_t hourValueStr[4];
+uint8_t dayValueStr[4];
+uint8_t dateValueStr[4];
+uint8_t monthValueStr[4];
+uint8_t yearValueStr[4];
+DS1307Date date;
+
+uint8_t processStatus=0;
+uint8_t processCompleted=0;
+
+extern uint8_t dataWrite[];
+extern uint8_t dataRead[];
 
 PUTCHAR_PROTOTYPE
 {
@@ -223,10 +248,10 @@ void beep_Buzzer(uint8_t ton, uint8_t toff, uint8_t times)
 	for (i=1; i<=times;i++)
 	{
 		GPIO_ResetBits(BUZZER_PORT, BUZZER_PIN);
-		GPIO_SetBits(LED_PORT, LED_PIN);
+// 		GPIO_SetBits(LED_PORT, LED_PIN);
 		delay_ms(ton);
 		GPIO_SetBits(BUZZER_PORT, BUZZER_PIN);
-		GPIO_ResetBits(LED_PORT, LED_PIN);
+// 		GPIO_ResetBits(LED_PORT, LED_PIN);
 		delay_ms(toff);
 	}
 }
@@ -308,7 +333,7 @@ void TIM_Configuration(void)
 	TIM_OCInitTypeDef  TIM_OCInitStructure;
 	
 	/* Time base configuration */
-	TIM_TimeBaseStructure.TIM_Period = 999;	  //TIM2 frequency is 5Hz
+	TIM_TimeBaseStructure.TIM_Period = 499;	  //TIM2 frequency is 10Hz
 	TIM_TimeBaseStructure.TIM_Prescaler = 7199;		 //clock for TIM2 is 10KHz
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
@@ -316,7 +341,7 @@ void TIM_Configuration(void)
 	
 	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
 	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-	TIM_OCInitStructure.TIM_Pulse = 499;						   
+	TIM_OCInitStructure.TIM_Pulse = 0;		//249			   
 	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 	TIM_OC1Init(TIM2, &TIM_OCInitStructure);
 	
@@ -349,6 +374,13 @@ void ax12ReceivedMsgProcess(void)
 	clearBuffer(ccValueStr);
 	clearBuffer(nnnValueStr);
 	clearBuffer(pppValueStr);
+	clearBuffer(secValueStr);
+	clearBuffer(minValueStr);
+	clearBuffer(hourValueStr);
+	clearBuffer(dayValueStr);
+	clearBuffer(dateValueStr);
+	clearBuffer(monthValueStr);
+	clearBuffer(yearValueStr);
 	
 	for(i=0; i<50; i++)
 	{
@@ -376,8 +408,35 @@ void ax12ReceivedMsgProcess(void)
 			sign = PPP_SIGN;
 			signIndex = i;
 		}
+		else if(rx_buffer[i]== 's'){
+			sign = SEC_SIGN;
+			signIndex = i;
+		}
+		else if(rx_buffer[i]== 'm'){
+			sign = MIN_SIGN;
+			signIndex = i;
+		}
+		else if(rx_buffer[i]== 'h'){
+			sign = HOUR_SIGN;
+			signIndex = i;
+		}
+		else if(rx_buffer[i]== 'd'){
+			sign = DAY_SIGN;
+			signIndex = i;
+		}
+		else if(rx_buffer[i]== 'D'){
+			sign = DATE_SIGN;
+			signIndex = i;
+		}
+		else if(rx_buffer[i]== 'M'){
+			sign = MONTH_SIGN;
+			signIndex = i;
+		}
+		else if(rx_buffer[i]== 'y'){
+			sign = YEAR_SIGN;
+			signIndex = i;
+		}		
 		else if(rx_buffer[i]== '#'){
-// 			i=50; // break for loop
 			break;
 		}
 		else{
@@ -399,6 +458,27 @@ void ax12ReceivedMsgProcess(void)
 			else if(sign==PPP_SIGN){
 				pppValueStr[i-signIndex-1] = rx_buffer[i];				
 			}
+			else if(sign==SEC_SIGN){
+				secValueStr[i-signIndex-1] = rx_buffer[i];				
+			}
+			else if(sign==MIN_SIGN){
+				minValueStr[i-signIndex-1] = rx_buffer[i];				
+			}
+			else if(sign==HOUR_SIGN){
+				hourValueStr[i-signIndex-1] = rx_buffer[i];				
+			}
+			else if(sign==DAY_SIGN){
+				dayValueStr[i-signIndex-1] = rx_buffer[i];				
+			}
+			else if(sign==DATE_SIGN){
+				dateValueStr[i-signIndex-1] = rx_buffer[i];				
+			}
+			else if(sign==MONTH_SIGN){
+				monthValueStr[i-signIndex-1] = rx_buffer[i];				
+			}
+			else if(sign==YEAR_SIGN){
+				yearValueStr[i-signIndex-1] = rx_buffer[i];				
+			}
 		}
 	}
 	clearBuffer(rx_buffer);
@@ -414,13 +494,37 @@ void clearBuffer(uint8_t *buf)
 	}
 }
 
-
 ErrorStatus DataProcess(uint8_t *p)
 {
-	if(p[0]>=0 && p[0]<=99 && (p[1] == 1))
-	{
+	if(p[0]>=0 && p[0]<=99 && (p[1] == (date.day + date.date))) // Tag ok
+	{	
+		processCompleted=1;
+		pulseCount=0;
+		TIM_ClearOC1Ref(TIM2, TIM_OCClear_Disable);
+		TIM_SetCompare1(TIM2, 249);
+		TIM_SetCounter(TIM2, 0);
+		pppValue = p[4]*256 + p[3];
+		TIM_Cmd(TIM2, ENABLE);	
 		
+		beep_Buzzer(5, 5, 2);
+				
+		dataWrite[0] = 0;
+		dataWrite[1] = 0;
+		dataWrite[2] = 0;
+		dataWrite[3] = 0;
+		dataWrite[4] = 0;
+		
+		processStatus = WriteRFIDProcess(dataWrite);
+		if(processStatus == MI_OK) insValue = READ_DATA;
+		processCompleted=0;	
+
+// 		delay_ms(10);
 	}
+	else // Tag error
+	{
+		beep_Buzzer(20, 20, 5);
+	}
+	return 0;
 }
 
 /*----------------------------------------------------------------------------

@@ -544,8 +544,10 @@ void TIM2_IRQHandler(void)
 		if(pulseCount >= pppValue) 
 		{
 			pulseCount=0;
-			TIM_Cmd(TIM2, DISABLE);
+			TIM_ClearOC1Ref(TIM2, TIM_OCClear_Enable);
 			TIM_SetCounter(TIM2, 0);
+			TIM_SetCompare1(TIM2, 0);	
+			TIM_Cmd(TIM2, DISABLE);			
 		}
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
 	}

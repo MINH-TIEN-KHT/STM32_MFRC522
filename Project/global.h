@@ -39,6 +39,7 @@
 #define READ_DATA 0x02
 #define WRITE_DATA 0x03
 #define OUTPUT_PULSE 0x04
+#define SET_DATETIME  0x05
 
 #define INS_SIGN 1
 #define AA_SIGN 2
@@ -47,6 +48,15 @@
 #define NNN_SIGN 5
 #define PPP_SIGN 6
 #define SHARP_SIGN 7
+#define SEC_SIGN 8
+#define MIN_SIGN 9
+#define HOUR_SIGN 10
+#define DAY_SIGN 11
+#define DATE_SIGN 12
+#define MONTH_SIGN 13
+#define YEAR_SIGN 14
+
+
 
 extern uint8_t USART_RX_BUF[64];     
 extern uint8_t USART_RX_STA;    
