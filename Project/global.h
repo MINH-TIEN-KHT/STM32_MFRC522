@@ -36,10 +36,12 @@
 
 #define SPI1_PORT  GPIOA
 
+#define PING      0x01
 #define READ_DATA 0x02
 #define WRITE_DATA 0x03
-#define OUTPUT_PULSE 0x04
-#define SET_DATETIME  0x05
+#define ERASE_DATA 0x04
+#define OUTPUT_PULSE 0x05
+#define SET_DATETIME  0x06
 
 #define INS_SIGN 1
 #define AA_SIGN 2

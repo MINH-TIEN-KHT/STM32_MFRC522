@@ -497,7 +497,7 @@ void clearBuffer(uint8_t *buf)
 ErrorStatus DataProcess(uint8_t *p)
 {
 	if(p[0]>=0 && p[0]<=99 && (p[1] == (date.day + date.date))) // Tag ok
-	{	
+	{			
 		processCompleted=1;
 		pulseCount=0;
 		TIM_ClearOC1Ref(TIM2, TIM_OCClear_Disable);
@@ -507,22 +507,13 @@ ErrorStatus DataProcess(uint8_t *p)
 		TIM_Cmd(TIM2, ENABLE);	
 		
 		beep_Buzzer(5, 5, 2);
-				
-		dataWrite[0] = 0;
-		dataWrite[1] = 0;
-		dataWrite[2] = 0;
-		dataWrite[3] = 0;
-		dataWrite[4] = 0;
-		
-		processStatus = WriteRFIDProcess(dataWrite);
-		if(processStatus == MI_OK) insValue = READ_DATA;
+		insValue = ERASE_DATA;		
 		processCompleted=0;	
-
-// 		delay_ms(10);
 	}
 	else // Tag error
 	{
 		beep_Buzzer(20, 20, 5);
+		insValue = READ_DATA;	
 	}
 	return 0;
 }

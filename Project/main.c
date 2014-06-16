@@ -218,9 +218,22 @@ int main(void)
 			{
 				processCompleted=1;
 				processStatus = ReadRFIDProcess();
-				if(processStatus == MI_OK) insValue = READ_DATA;
+// 				if(processStatus == MI_OK) insValue = READ_DATA;
 				processCompleted=0;
 			}	
+			else if((insValue==ERASE_DATA) && (processCompleted==0))
+			{
+				processCompleted=1;
+				
+				dataWrite[0] = 0;
+				dataWrite[1] = 0;
+				dataWrite[2] = 0;
+				dataWrite[3] = 0;
+				dataWrite[4] = 0;
+				processStatus = WriteRFIDProcess(dataWrite);
+				if(processStatus == MI_OK) insValue = READ_DATA;
+				processCompleted=0;
+			}
 		}			
 	}
 }
