@@ -161,7 +161,7 @@ void GPIO_Configuration(void)
 {  
 	GPIO_InitTypeDef GPIO_InitStructure;
 	
-	GPIO_PinRemapConfig(GPIO_Remap_SWJ_NoJTRST, ENABLE);
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_Disable, ENABLE);
 	/*------------------------------------------
 	PA.3 (RST)    -->   MFRC522's RST Pin
 	PA.4 (NSS)    -->   MFRC522's SDA Pin
@@ -235,11 +235,6 @@ void GPIO_Configuration(void)
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_OD;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0; //input 
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;	
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
 
 void beep_Buzzer(uint8_t ton, uint8_t toff, uint8_t times)
@@ -247,10 +242,10 @@ void beep_Buzzer(uint8_t ton, uint8_t toff, uint8_t times)
 	unsigned char i;
 	for (i=1; i<=times;i++)
 	{
-		GPIO_ResetBits(BUZZER_PORT, BUZZER_PIN);
+		GPIO_SetBits(BUZZER_PORT, BUZZER_PIN);
 // 		GPIO_SetBits(LED_PORT, LED_PIN);
 		delay_ms(ton);
-		GPIO_SetBits(BUZZER_PORT, BUZZER_PIN);
+		GPIO_ResetBits(BUZZER_PORT, BUZZER_PIN);
 // 		GPIO_ResetBits(LED_PORT, LED_PIN);
 		delay_ms(toff);
 	}
@@ -341,7 +336,7 @@ void TIM_Configuration(void)
 	
 	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
 	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-	TIM_OCInitStructure.TIM_Pulse = 0;		//249			   
+	TIM_OCInitStructure.TIM_Pulse = 249;		//249			   
 	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 	TIM_OC1Init(TIM2, &TIM_OCInitStructure);
 	
@@ -360,10 +355,10 @@ void Led(BitAction cmd)
 
 void Buzzer(BitAction cmd)
 {
-	GPIO_WriteBit(BUZZER_PORT, BUZZER_PIN, 1-cmd);
+	GPIO_WriteBit(BUZZER_PORT, BUZZER_PIN, cmd);
 }
 
-void ax12ReceivedMsgProcess(void)
+void ReceivedMsgProcess(void)
 {
 	uint8_t i=0;
 	uint8_t sign=0, signIndex=0;
@@ -500,7 +495,7 @@ ErrorStatus DataProcess(uint8_t *p)
 	{			
 		processCompleted=1;
 		pulseCount=0;
-		TIM_ClearOC1Ref(TIM2, TIM_OCClear_Disable);
+// 		TIM_ClearOC1Ref(TIM2, TIM_OCClear_Disable);
 		TIM_SetCompare1(TIM2, 249);
 		TIM_SetCounter(TIM2, 0);
 		pppValue = p[4]*256 + p[3];

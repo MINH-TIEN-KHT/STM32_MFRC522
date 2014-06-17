@@ -13,14 +13,14 @@
 
 #endif /* __GNUC__ */
 
-#define BUZZER_PIN      GPIO_Pin_8
-#define BUZZER_PORT     GPIOA
+#define BUZZER_PIN      GPIO_Pin_3
+#define BUZZER_PORT     GPIOB
 
-#define LED_PIN      GPIO_Pin_9
-#define LED_PORT     GPIOB
+#define LED_PIN      GPIO_Pin_1
+#define LED_PORT     GPIOA
 
-#define MFRC522_RST_PIN      GPIO_Pin_3
-#define MFRC522_RST_PORT     GPIOA
+#define MFRC522_RST_PIN      GPIO_Pin_4
+#define MFRC522_RST_PORT     GPIOB
 
 #define SPI1_NSS_PIN  	GPIO_Pin_4
 #define SPI1_NSS_PORT  	GPIOA
@@ -76,7 +76,7 @@ void EXTI_Configuration(void);
 void TIM_Configuration(void);
 void Led(BitAction cmd);
 void Buzzer(BitAction cmd);
-void ax12ReceivedMsgProcess(void);
+void ReceivedMsgProcess(void);
 void clearBuffer(uint8_t *buf);
 ErrorStatus DataProcess(uint8_t *p);
 

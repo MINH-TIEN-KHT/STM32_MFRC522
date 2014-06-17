@@ -470,7 +470,7 @@ void EXTI9_5_IRQHandler(void)
 	if(EXTI_GetITStatus(EXTI_Line5) == SET)
 	{
 		time_update = SET;
-		GPIO_WriteBit(GPIOB, GPIO_Pin_9, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_9)));
+		GPIO_WriteBit(GPIOA, GPIO_Pin_1, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_1)));
 		EXTI_ClearITPendingBit(EXTI_Line5);
 	}
 }
@@ -544,7 +544,7 @@ void TIM2_IRQHandler(void)
 		if(pulseCount >= pppValue) 
 		{
 			pulseCount=0;
-			TIM_ClearOC1Ref(TIM2, TIM_OCClear_Enable);
+// 			TIM_ClearOC1Ref(TIM2, TIM_OCClear_Enable);
 			TIM_SetCounter(TIM2, 0);
 			TIM_SetCompare1(TIM2, 0);	
 			TIM_Cmd(TIM2, DISABLE);			

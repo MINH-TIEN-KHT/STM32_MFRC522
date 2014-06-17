@@ -93,7 +93,7 @@ int main(void)
 		loopCount++;
 		if(msgReceiveComplete == 1)
 		{
-			ax12ReceivedMsgProcess();			
+			ReceivedMsgProcess();			
 			insValue = (uint8_t)atoi((const char*)insValueStr);		
 			msgReceiveComplete = 0;	
 		}			
@@ -129,7 +129,9 @@ int main(void)
 		if(time_update == SET)
 		{
 			time_update = RESET;
+// 		printf("Reading Time...\r\n");
 			ds1307_readBlockData(DS1307_ADDRESS, DS1307_SECONDS, i2c_buff_read, 8);	
+// 		printf("Read Finish.r\n");
 			date.second = bcd_2_dec(i2c_buff_read[DS1307_SECONDS]);
 			date.minute = bcd_2_dec(i2c_buff_read[DS1307_MINUTES]);
 			
@@ -156,7 +158,7 @@ int main(void)
 				//	the upper bcd digit (we can't represent 2n in bcd without bit 5)
 				date.hour = bcd_2_dec(temp_hour & 0x3F);  // 0b00111111
 			}	
-/*-----------------------------------------------------------------------
+/*/-----------------------------------------------------------------------
 			printf("\n");		
 			
 			switch(date.day)
@@ -188,10 +190,10 @@ int main(void)
 			}		
 			printf("%d-%d-%d\n", date.date, date.month, 2000 + date.year);
 			printf("%d:%d:%d\n", date.hour, date.minute, date.second);
----------------------------------------------------------------------*/		
+//---------------------------------------------------------------------	*/
 		}
 
-		if(loopCount>=65000)
+		if(loopCount>=50000)
 		{
 			loopCount=0;
 			if((insValue==WRITE_DATA) && (processCompleted==0))
