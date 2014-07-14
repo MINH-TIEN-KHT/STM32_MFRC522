@@ -139,6 +139,19 @@ void SysTick_Handler(void)
 {
 }
 
+/*******************************************************************************
+* Function Name  : USB_IRQHandler
+* Description    : This function handles USB Low Priority interrupts
+*                  requests.
+* Input          : None
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void USB_LP_CAN1_RX0_IRQHandler(void)
+{
+  USB_Istr();
+}
+
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */
 /*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
@@ -745,6 +758,7 @@ void RTCAlarm_IRQHandler(void)
 *******************************************************************************/
 void USBWakeUp_IRQHandler(void)
 {
+	 EXTI_ClearITPendingBit(EXTI_Line18);
 }
 
 /*******************************************************************************

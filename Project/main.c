@@ -1,4 +1,3 @@
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "global.h"
@@ -7,8 +6,41 @@
 #include <stdio.h>
 #include "ds1307.h"
 
-/* Private function prototypes -----------------------------------------------*/
+/* Includes ------------------------------------------------------------------*/
+#include "hw_config.h"
+#include "usb_lib.h"
+#include "usb_desc.h"
+#include "usb_pwr.h"
 
+enum USBCMD{
+	USBData='D',
+	USBAddr='A',
+	USBRead='R',
+}USBcmd;
+
+enum MAINSTATE{
+	Idle,
+	USB_Read_Cmd,
+	USB_DAC_Update,
+	USB_Resp_Data,
+	ID_Update,
+	FB_Voltage_Conv,
+}MainState=Idle;
+
+/* Private functions ---------------------------------------------------------*/
+extern uint16_t USB_Rx_Cnt;
+
+extern uint8_t  USB_Tx_State;
+
+extern uint8_t USB_Rx_Buffer[VIRTUAL_COM_PORT_DATA_SIZE];
+extern uint8_t  USART_Rx_Buffer [USART_RX_DATA_SIZE]; 
+extern uint32_t USART_Rx_ptr_in;
+unsigned int Ref_Voltage[8]={0,0,0,0,0,0,0,0};
+#define VoltageERROR_Low 5
+#define VoltageERROR_High 1
+
+/* Private function prototypes -----------------------------------------------*/
+/////////////////////////////////
 extern uint8_t CT[];
 extern uint8_t SN[];
 extern uint8_t dataWrite[];
@@ -60,10 +92,34 @@ uint8_t temp_hour=0;
 extern DS1307Date date;
 uint8_t i2c_buff_write[8];
 uint8_t i2c_buff_read[8];
+//////////////////////////////
 	
 int main(void)
 {
-
+	unsigned char i;
+	char Resp_Packet[20];
+	uint16_t chksum=0;
+	uint16_t ID=0;
+	Set_System();
+  Set_USBClock();
+  USB_Interrupts_Config();
+  USB_Init();
+	
+// 	while(1)
+// 	{
+// 		Resp_Packet[0]='V'; Resp_Packet[1]='F'; Resp_Packet[2]='T';                   //header          byte 0..2
+// 		Resp_Packet[3]=HighByte(ID); Resp_Packet[4]=LowByte(ID);                      //respone ID      byte 3..4 
+// 		for(i=0;i<8;i++) Resp_Packet[i+5]=15*i;    //respone ADC val byte 5..12
+// 		chksum=0;																														          //caculate checksum
+// 		for(i=3;i<13;i++) chksum+=Resp_Packet[i];
+// 		chksum=0xffff-chksum;
+// 		Resp_Packet[13]=HighByte(chksum); Resp_Packet[14]=LowByte(chksum);            //respone chksum  byte 13..14
+// 																																									//respone frame length 15 bytes						
+// 		USB_puts(Resp_Packet,15);		
+// 		
+// 		delay_ms(15);
+// 	}
+		
 	uint16_t loopCount=0;
 	RCC_Configuration();
 	delay_ms(1);
@@ -89,7 +145,7 @@ int main(void)
 	Led(Bit_RESET); // Led OFF
 	
 	while (1)
-	{
+	{		
 		loopCount++;
 		if(msgReceiveComplete == 1)
 		{
@@ -158,7 +214,8 @@ int main(void)
 				//	the upper bcd digit (we can't represent 2n in bcd without bit 5)
 				date.hour = bcd_2_dec(temp_hour & 0x3F);  // 0b00111111
 			}	
-/*/-----------------------------------------------------------------------
+			
+/*-----------------------------------------------------------------------
 			printf("\n");		
 			
 			switch(date.day)
@@ -190,7 +247,7 @@ int main(void)
 			}		
 			printf("%d-%d-%d\n", date.date, date.month, 2000 + date.year);
 			printf("%d:%d:%d\n", date.hour, date.minute, date.second);
-//---------------------------------------------------------------------	*/
+---------------------------------------------------------------------	*/
 		}
 
 		if(loopCount>=50000)
@@ -238,6 +295,7 @@ int main(void)
 			}
 		}			
 	}
+	
 }
 
 #ifdef  USE_FULL_ASSERT
